@@ -1,54 +1,58 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from flask_mail import Mail, Message
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
-# Configure Flask-Mail
-app.config['MAIL_SERVER'] = 'smtp.ethereal.email'
+# Configuration for Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'mekhi.deckow@ethereal.email'
-app.config['MAIL_PASSWORD'] = 'pkg9q4bd1aK2AtBwg5'
+app.config['MAIL_USERNAME'] = 'lokeshsri1109@gmail.com'
+app.config['MAIL_PASSWORD'] = 'hdxv aiua abss osly'
+app.config['MAIL_DEFAULT_SENDER'] = 'lokeshsri1109@gmail.com' 
 
 mail = Mail(app)
 
 @app.route('/sendmail', methods=['POST'])
 def send_mail():
-    data = request.json
+    try:
+        # Get form data
+        first_name = request.form.get('First-Name')
+        last_name = request.form.get('Last-Name')
+        job_title = request.form.get('Job-Title')
+        company_name = request.form.get('Company-Name')
+        email = request.form.get('Email-id')
+        phone_number = request.form.get('Phone-Number')
+        how_did_you_hear = request.form.get('How-did-you-hear-about-us')
+        remarks = request.form.get('Remarks')
+        
+        # Check captcha (you may want to implement a more secure solution)
+        # captcha_input = request.form.get('captcha')
+        # expected_captcha = 'your_expected_captcha_value'
+        # if captcha_input != expected_captcha:
+        #     return jsonify({'success': False, 'message': 'Invalid captcha'})
 
-    first_name = data.get('First-Name', '')
-    last_name = data.get('Last-Name', '')
-    job_title = data.get('Job-Title', '')
-    company_name = data.get('Company-Name', '')
-    email_id = data.get('Email-id', '')
-    phone_number = data.get('Phone-Number', '')
-    how_did_you_hear_about_us = data.get('How-did-you-hear-about-us', '')
-    remarks = data.get('Remarks', '')
-
-    # Configure the Flask-Mail Message
-    message = Message('New Contact Form Submission',
-                      sender='mekhi.deckow@ethereal.email',
-                      recipients=['lokeshsri1109@gmail.com'])
-
-    message.body = f"""
+        # Create and send email
+        subject = 'Contact Us Form Submission'
+        body = f"""
         First Name: {first_name}
         Last Name: {last_name}
         Job Title: {job_title}
         Company Name: {company_name}
-        Email: {email_id}
+        Email: {email}
         Phone Number: {phone_number}
-        How did you hear about us: {how_did_you_hear_about_us}
+        How did you hear about us: {how_did_you_hear}
         Remarks: {remarks}
-    """
+        """
 
-    try:
-        # Send the email
-        mail.send(message)
-        return jsonify({'message': 'Email sent successfully'}), 200
+        msg = Message(subject, recipients=['lokeshsri1109@gmail.com'], body=body)
+        mail.send(msg)
+
+        return jsonify({'success': True, 'message': 'Email sent successfully'})
     except Exception as e:
-        print(f'Error sending email: {e}')
-        return jsonify({'message': 'Error sending email'}), 500
+        return jsonify({'success': False, 'message': str(e)})
 
 if __name__ == '__main__':
-    port = 3300
-    app.run(port=port, debug=True)
+    app.run(debug=True)
